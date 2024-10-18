@@ -1,0 +1,44 @@
+[build-system]
+# requires = ["setuptools >= 40.6.0", "wheel"]
+requires = ["hatchling", "wheel"]
+
+# build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+
+[project]
+name="thinice"
+dynamic = [ "version" ]
+keywords = [ "Glacier", "cold", "storage", "cold storage", "API", "friendly" ]
+
+dependencies = [
+    'fastapi',
+    'uvicorn',
+    'boto3',
+    'rich',
+    'mypy-boto3-glacier',
+    'typer',
+    'python-dotenv'
+]
+authors = [
+  { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
+]
+description = "Human-friendly Amazon glacier API"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/yaroslaff/ThinIce"
+Issues = "https://github.com/yaroslaff/showcert/ThinIce"
+
+
+[project.scripts]
+thinice = "thinice.main:main"
+thiniceapi = "thinice.mainapi:main"
+
+[tool.hatch.version]
+path = 'thinice/version.py'
