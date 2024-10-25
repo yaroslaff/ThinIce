@@ -43,7 +43,7 @@ Thinice support multipart uploads and can upload very large files
 # No description explicitly given, description will be myarchive.zip
 thinice upload /path/to/myarchive.zip
 
-# No description explicitly given, description will be myarchive.zip
+# Upload with description
 thinice upload /path/to/myarchive.zip "My archive from 01/02/2003"
 ~~~
 
