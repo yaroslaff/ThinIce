@@ -11,6 +11,6 @@ from . import delete, inventory, app, upload, download, list, jobs, vaults
 from .debug import debug_app
 
 def main():
-    load_dotenv()    
+    load_dotenv(dotenv_path=Path.home() / '.thinice' / '.env')
     typerapp.add_typer(debug_app, name='debug', help='Debugging commands')
     typerapp()
