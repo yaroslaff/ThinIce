@@ -41,11 +41,11 @@ def request_file(
 @typerapp.command("download", rich_help_panel=panel_updown,
              help='Download warm file',
             epilog="""~~~shell\n
-            # many files with this Description\n
-            thinice request -m MyServer.tar.gz\n
+            # file with this description MyServer.tar.gz will be saved as MyServer.tar.gz\n
+            thinice download MyServer.tar.gz\n
             \n
             # one file with ArchiveId starting with this characters\n
-            thinice request S93to\n
+            thinice download S93to myarchive.zip\n
 ~~~
 """
 )

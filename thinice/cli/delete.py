@@ -11,10 +11,10 @@ from pathlib import Path
             help='Delete archive from glacier',
             epilog="""~~~shell\n
 # delete many files with this Description\n
-thinice request -m MyServer.tar.gz\n
+thinice delete -m MyServer.tar.gz\n
 \n
 # delete one file with ArchiveId starting with this characters\n
-thinice request S93to\n
+thinice delete S93to\n
 ~~~"""
 )
 def delete_archive(
