@@ -38,7 +38,7 @@ Issues = "https://github.com/yaroslaff/showcert/ThinIce"
 
 [project.scripts]
 thinice = "thinice.cli.main:main"
-thiniceapi = "thinice.mainapi:main"
+# thiniceapi = "thinice.mainapi:main"
 
 [tool.hatch.version]
 path = 'thinice/version.py'
