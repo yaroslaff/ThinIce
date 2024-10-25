@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 [project]
 name="thinice"
 dynamic = [ "version" ]
-keywords = [ "Glacier", "cold", "storage", "cold storage", "API", "friendly" ]
+keywords = [ "Glacier", "cold", "storage", "cold storage", "API", "friendly", "s4fs", "aws", "upload", "download", "inventory", "CLI", "utility", "tool" ]
 
 dependencies = [
     'fastapi',
@@ -37,7 +37,7 @@ Issues = "https://github.com/yaroslaff/showcert/ThinIce"
 
 
 [project.scripts]
-thinice = "thinice.main:main"
+thinice = "thinice.cli.main:main"
 thiniceapi = "thinice.mainapi:main"
 
 [tool.hatch.version]
