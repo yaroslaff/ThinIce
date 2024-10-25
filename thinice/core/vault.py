@@ -35,7 +35,7 @@ class GlacierVault:
     def __init__(self, credentials: AWSCredentials, vault_name: str | None = None):
         self.credentials = credentials
         self.vault_name = vault_name
-        self.locations = Locations(base_path=os.path.expanduser('~/.thinice/'))
+        self.locations = Locations(base_path=os.path.expanduser(f'~/.local/share/thinice/{credentials.key_id}/'))
         self.session = boto3.Session(
             aws_access_key_id=credentials.key_id,
             aws_secret_access_key=credentials.secret_key,

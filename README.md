@@ -10,7 +10,7 @@ pip3 install thinice
 ~~~
 
 ## Configuration
-Write `~/.thinice/.env` config file, example:
+Create config dir `mkdir ~/.config/thinice` and make config file `~/.config/thinice/thinice.env`, example:
 ~~~
 AWS_ACCESS_KEY_ID = AK...
 AWS_SECRET_ACCESS_KEY = FN...
