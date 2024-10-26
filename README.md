@@ -1,5 +1,20 @@
 # ThinIce - friendly client for Amazon Glacier 
 
+## Understanding difference: Amazon S3 Glacier vs Amazon S3 Glacier Deep Archive
+This is two different services. (But both offers low-cost storage)
+
+
+|                                          | Glacier         | Glacier deep archive | 
+| ---                                      | ---             | ---                  | 
+| Launched                                 | 2012            | 2018                 |
+| Storage cost (USD/GB/mo)                 | $0.004          | $0.00099             |
+| Storage cost (USD/GB/mo)                 | $0.004          | $0.00099             |
+| Retrieval cost (Gb) and time (Expedited) | $0.03, 1-5min   | Not available        |
+| Retrieval cost/time (Standard)           | $0.01, 3-5h     | $0.02 (12h)          |
+| Retrieval cost/time (Bulk)               | $0.0025, 5-12h  | $0.0025 (48h)        |
+
+
+
 ## Install
 ~~~shell
 pipx install thinice
