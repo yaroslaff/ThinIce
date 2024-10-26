@@ -1,19 +1,22 @@
 # ThinIce - friendly client for Amazon Glacier 
 
 ## Understanding difference: Amazon S3 Glacier vs Amazon S3 Glacier Deep Archive
-This is two different services. (But both offers low-cost storage)
+These are two different services. (But both offers low-cost storage)
 
 
-|                                          | Glacier         | Glacier deep archive | 
-| ---                                      | ---             | ---                  | 
-| Launched                                 | 2012            | 2018                 |
-| Storage cost (USD/GB/mo)                 | $0.004          | $0.00099             |
-| Storage cost (USD/GB/mo)                 | $0.004          | $0.00099             |
-| Retrieval cost (Gb) and time (Expedited) | $0.03, 1-5min   | Not available        |
-| Retrieval cost/time (Standard)           | $0.01, 3-5h     | $0.02 (12h)          |
-| Retrieval cost/time (Bulk)               | $0.0025, 5-12h  | $0.0025 (48h)        |
+|                                          | Glacier           | Glacier deep archive | 
+| ---                                      | ---               | ---                  | 
+| Launched                                 | 2012              | 2018                 |
+| Storage cost (USD/GB/mo)                 | $0.004            | $0.00099             |
+| Retrieval cost (Gb) and time (Expedited) | **$0.03, 1-5min** | Not available        |
+| Retrieval cost/time (Standard)           | $0.01, 3-5h       | $0.02 (12h)          |
+| Retrieval cost/time (Bulk)               | $0.0025, 5-12h    | $0.0025 (48h)        |
 
+While Glacier Deep Archive is 4 times cheaper for storage, Glacier has Expedited retrieval and when you need it, you can recover almost as quickly as if files are on your disk (vs 12hrs with Deep Archive), this difference could be very important in business cases.
 
+Even if you keep 1Tb of archives this cost you just $4/mo for Glacier (vs $1/mo for Deep Archive). You spend extra $3/mo, but you can recover files in a minute.
+
+ThinIce works with Glacier, but not with Glacier Deep Archive (use tools like [s3cmd](https://github.com/s3tools/s3cmd) or [s4cmd](https://github.com/bloomreach/s4cmd) for it).
 
 ## Install
 ~~~shell
