@@ -196,7 +196,7 @@ class GlacierVault:
         # self.inventory.add_job(response)
         self.inventory.save()
 
-    def list_archives(self, pattern: Optional[str] = None, sizespec: Optional[str] = None, agespec: Optional[int] = None):
+    def list_archives(self, pattern: Optional[str] = None, sizespec: Optional[str] = None, agespec: Optional[int] = None, warm: bool = False):
         archives = self.inventory.get_all_archives()
         
         # filter by pattern
@@ -217,6 +217,9 @@ class GlacierVault:
                 archives = [arc for arc in archives if arc['age'] >= agespec]
             else:
                 archives = [arc for arc in archives if arc['age'] <= abs(agespec)]
+
+        if warm:
+            archives = list(filter(lambda d: d.get('status')=='Warm', archives))
 
         return archives
 

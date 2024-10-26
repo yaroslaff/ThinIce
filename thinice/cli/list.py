@@ -44,6 +44,9 @@ def ls_archives(
     pattern: Annotated[str, typer.Argument(help='Desc pattern, e.g. "*gz" or "server1*"')] = None,
     size: Annotated[str, typer.Option(help='size, e.g. "10G" or "-1G"')] = None,
     age: Annotated[int, typer.Option(help='age in days, e.g. "30" or "-30"')] = None,
+    warm: Annotated[bool, typer.Option(
+        '-w', '--warp',
+        rich_help_panel=panel_list, help='Display only warm archives')] = False,
     no_jobs: Annotated[bool, typer.Option(
         '-n', '--no-jobs',
         rich_help_panel=panel_list, help='Do NOT update jobs from glacier, use latest cached')] = False):
@@ -71,7 +74,8 @@ def ls_archives(
         table.add_column("Status", style="dim white")
         table.add_column("Id...", style="#808080")
 
-        for file_rec in app.vault.list_archives(pattern=pattern, sizespec=size, agespec=age):
+        for file_rec in app.vault.list_archives(pattern=pattern, sizespec=size, agespec=age, warm=warm):
+
             table.add_row(
                 file_rec['ArchiveDescription'], 
                 file_rec['sz'], 
