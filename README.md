@@ -16,7 +16,7 @@ These are two different services (though both offer low-cost storage).
 
 While Glacier Deep Archive is four times cheaper for storage, Glacier offers Expedited retrieval, which is not very expensive. When needed, you can recover files almost as quickly as if they were on your local disk (compared to 12 hours with Deep Archive). This difference can be crucial in business cases. Additionally, Standard and Bulk retrieval options are available at a lower cost.
 
-Even if you keep 1 TB of archives, it costs just $4 per month for Glacier (compared to $1 per month for Deep Archive). You spend an extra $3 per month for peace of mind, knowing you can recover files in a few minutes.
+For each 1 TB of archives it costs just $4 per month for Glacier (compared to $1 per month for Deep Archive). You spend an extra $3 per month for peace of mind, knowing you can recover files in a few minutes.
 
 ThinIce works with Glacier but not with Glacier Deep Archive. For the latter, consider using tools like [s3cmd](https://github.com/s3tools/s3cmd) or [s4cmd](https://github.com/bloomreach/s4cmd).
 

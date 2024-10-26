@@ -2,11 +2,13 @@ import typer
 from rich.pretty import pprint
 from .app import panel_main, typerapp
 from . import app
-from ..core.utils import td2str
+from ..core.utils import td2str, iso2dt
 from rich.table import Table
 import rich
+from rich.console import Console
 import datetime
 
+console=Console()
 
 def colorize_status_jobs(status: str) -> str:
 
@@ -33,12 +35,12 @@ thinice jobs\n
 def jobs():
     jobs = app.vault.list_jobs()
     table = Table(title="Jobs")
-    table.add_column("Action", style="bright_white")
+    table.add_column("Action",)
     table.add_column("Age", style="blue")
     table.add_column("Completed")
     table.add_column("StatusCode", style="dim white")
     table.add_column("Tier", style="dim white")
-    table.add_column("Description", style="white")
+    table.add_column("Description")
     table.add_column("Size")
     table.add_column("ArchiveId...", style="#808080")
 
@@ -47,7 +49,7 @@ def jobs():
     for job in app.vault.list_jobs():
 
         # convert to isotime string to YY-MM-DD HH:MM
-        created =  datetime.datetime.fromisoformat(job['CreationDate'].split('+')[0].replace('T', ' '))
+        created =  iso2dt(job['CreationDate'].split('+')[0].replace('T', ' '))
         age = td2str(now - created)
 
         if job.get('ArchiveId'):
@@ -75,4 +77,5 @@ def jobs():
             size,
             field_archive_id
         )
-    rich.print(table)
+    # rich.print(table)
+    console.print(table)

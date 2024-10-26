@@ -62,7 +62,7 @@ class Inventory():
     def inventory_date(self) -> Optional[datetime.datetime]:
         """ return inventory date or None """
         try:
-            return datetime.datetime.fromisoformat(self.inventory['latest_inventory']['InventoryDate'])
+            return iso2dt(self.inventory['latest_inventory']['InventoryDate'])
         except KeyError:
             return None
 

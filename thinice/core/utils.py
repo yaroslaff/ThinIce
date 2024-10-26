@@ -9,10 +9,20 @@ def response2dt(response: dict):
     return datetime.datetime.strptime(response['ResponseMetadata']['HTTPHeaders']['date'], dt_fmt)
 
 def iso2dt(isotime: str):
-    """ convert ISO 8601 time like 2024-10-21T18:42:57.175Z or 1970-01-01T00:00:00Z to datetime """
-    # dt_fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
-    # return datetime.datetime.strptime(isotime, dt_fmt).replace(tzinfo=datetime.timezone.utc)
-    return datetime.datetime.fromisoformat(isotime)
+    """ convert ISO 8601 time like 2024-10-21T18:42:57.175Z or 1970-01-01T00:00:00Z or 2024-10-26 11:42:22.231Z to datetime """
+    """
+    """
+    dt_fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
+
+    if ' ' in isotime:
+        dt_fmt = "%Y-%m-%d %H:%M:%S.%fZ"
+    elif '.' in isotime:
+        dt_fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
+    else:
+        dt_fmt = "%Y-%m-%dT%H:%M:%SZ"
+
+    return datetime.datetime.strptime(isotime, dt_fmt).replace(tzinfo=datetime.timezone.utc)
+
 
 def td2str(tdelta: datetime.timedelta):
     total_seconds = int(tdelta.total_seconds())

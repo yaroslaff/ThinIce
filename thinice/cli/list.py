@@ -67,7 +67,7 @@ def ls_archives(
             table_title = "Archives (No local inventory)"
 
         table = Table(title=table_title)
-        table.add_column("Description", style="bright_white")
+        table.add_column("Description")
         table.add_column("Size")
         table.add_column("Date", style="cyan")
         table.add_column("Age", style="cyan")
