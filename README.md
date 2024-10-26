@@ -1,6 +1,6 @@
 # ThinIce - friendly client for Amazon Glacier 
 
-Understanding the difference: Amazon S3 Glacier vs. Amazon S3 Glacier Deep Archive 
+## Understanding the difference: Amazon S3 Glacier vs. Amazon S3 Glacier Deep Archive 
 These are two different services (though both offer low-cost storage).
 
 |                                          | Glacier            | Glacier deep archive | 
@@ -21,10 +21,11 @@ Even if you keep 1 TB of archives, it costs just $4 per month for Glacier (compa
 ThinIce works with Glacier but not with Glacier Deep Archive. For the latter, consider using tools like [s3cmd](https://github.com/s3tools/s3cmd) or [s4cmd](https://github.com/bloomreach/s4cmd).
 
 ## Install
+[pipx](https://github.com/pypa/pipx) method is recommended (pipx is easy to install).
 ~~~shell
 pipx install thinice
 ~~~
-or (recommended: in virtualenv):
+or (better if in virtualenv):
 ~~~shell
 pip3 install thinice
 ~~~
