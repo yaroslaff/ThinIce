@@ -7,7 +7,7 @@ import math
 from .credentials import AWSCredentials
 from .locations import Locations
 from .inventory import Inventory
-from .utils import iso2dt, calculate_sha256
+from .utils import iso2dt, calculate_sha256, from_kmgt
 from .rawglacier.multipart import calculate_part_size, initiate_upload, upload_part, complete_upload, calculate_tree_hash
 from .exceptions import ArchiveNotRetrieved
 from rich.pretty import pprint
@@ -17,22 +17,24 @@ import hashlib
 import json
 import datetime
 from mypy_boto3_glacier import GlacierClient, GlacierServiceResource
-from typing import Any, IO
+from typing import Any, IO, Optional
 from pathlib import Path
 import os
+import fnmatch
 
 class GlacierVault:
     credentials: AWSCredentials
-    client: GlacierClient
+    glacier_client: GlacierClient
     session: boto3.Session
     resource: GlacierServiceResource
     vault: Any
     locations: Locations
     inventory: Inventory
     vault_name: str
-    repeat_request: datetime.timedelta
+    verbose: bool
     
-    def __init__(self, credentials: AWSCredentials, vault_name: str | None = None):
+    def __init__(self, credentials: AWSCredentials, vault_name: str | None = None, verbose=False):
+        self.verbose = verbose
         self.credentials = credentials
         self.vault_name = vault_name
         self.locations = Locations(base_path=os.path.expanduser(f'~/.local/share/thinice/{credentials.key_id}/'))
@@ -41,36 +43,39 @@ class GlacierVault:
             aws_secret_access_key=credentials.secret_key,
             region_name=credentials.region
         )
-        self.client = self.session.client('glacier')
+        self.glacier_client = self.session.client('glacier')
+        self.s3_client = self.session.client('s3')
 
         if vault_name is not None:
             self.inventory = Inventory(locations=self.locations, vault_name=vault_name)
 
-        self.repeat_request = datetime.timedelta(hours=1)
-
-        # self.resource = boto3.resource('glacier')
-        #self.client = boto3.client('glacier')
-        #self.vault = self.resource.Vault('-',self.vaultName)
-
+        if self.verbose:
+            print("Verbose mode")
 
     def list_vaults(self):
-        response = self.client.list_vaults()
+        response = self.glacier_client.list_vaults()
+        
+    
+
         # return [vault['VaultName'] for vault in response['VaultList']]
         return response['VaultList']
     
     def list_jobs(self) -> ListJobsOutputTypeDef:
         """ request current jobs and save it in inventory """
-        response = self.client.list_jobs(vaultName=self.vault_name)
+        response = self.glacier_client.list_jobs(vaultName=self.vault_name)
         self.inventory.set_latest_jobs(response)
         self.inventory.save()
         
+        if self.verbose:
+            pprint(response)
+
         return response['JobList']
 
     def accept_inventory(self, job: dict) -> bool:
         assert job['Action'] == 'InventoryRetrieval'
         assert job['Completed'] == True and job['StatusCode'] == 'Succeeded'
 
-        job_output = self.client.get_job_output(accountId='-', vaultName=self.vault_name, jobId=job['JobId'])
+        job_output = self.glacier_client.get_job_output(accountId='-', vaultName=self.vault_name, jobId=job['JobId'])
         inv = json.load(job_output['body'])
         if self.inventory.set_latest_inventory(inv):
             self.inventory.save()
@@ -81,7 +86,7 @@ class GlacierVault:
 
         sha256sum = calculate_sha256(stream)        
 
-        response = self.client.upload_archive(
+        response = self.glacier_client.upload_archive(
             vaultName=self.vault_name,
             archiveDescription=description,
             body=stream)
@@ -107,7 +112,7 @@ class GlacierVault:
         part_size = calculate_part_size(total_size=total_size)
 
         # Step 1: Initiate the multipart upload
-        upload_id = initiate_upload(client=self.client, vault_name=self.vault_name, desc=description, part_size=part_size)
+        upload_id = initiate_upload(client=self.glacier_client, vault_name=self.vault_name, desc=description, part_size=part_size)
 
         # Step 2: Upload parts
         part_checksums = []
@@ -120,7 +125,7 @@ class GlacierVault:
             
             # Upload part and get checksum
             checksum = upload_part(
-                client=self.client,
+                client=self.glacier_client,
                 vault_name=self.vault_name, 
                 upload_id=upload_id, 
                 range_start=range_start, 
@@ -137,7 +142,7 @@ class GlacierVault:
 
         # Step 3: Complete the multipart upload        
         archive_id = complete_upload(
-            client=self.client,
+            client=self.glacier_client,
             vault_name=self.vault_name,
             upload_id=upload_id,
             checksum=tree_hash,
@@ -181,7 +186,7 @@ class GlacierVault:
                 return
         
 
-        response = self.client.initiate_job(
+        response = self.glacier_client.initiate_job(
             vaultName=self.vault_name,
             jobParameters=job_params)
         # pprint(response)
@@ -191,8 +196,28 @@ class GlacierVault:
         # self.inventory.add_job(response)
         self.inventory.save()
 
-    def list_archives(self):
+    def list_archives(self, pattern: Optional[str] = None, sizespec: Optional[str] = None, agespec: Optional[int] = None):
         archives = self.inventory.get_all_archives()
+        
+        # filter by pattern
+        if pattern:
+            archives = [arc for arc in archives if fnmatch.fnmatch(arc['ArchiveDescription'], pattern)]
+
+        # filter by size
+        if sizespec:
+            if sizespec[0] == '-':
+                size = from_kmgt(sizespec[1:])
+                archives = [arc for arc in archives if arc['Size'] < size]
+            else:
+                size = from_kmgt(sizespec)
+                archives = [arc for arc in archives if arc['Size'] > size]
+
+        if agespec:
+            if agespec>0:    
+                archives = [arc for arc in archives if arc['age'] >= agespec]
+            else:
+                archives = [arc for arc in archives if arc['age'] <= abs(agespec)]
+
         return archives
 
     def get_by_arc_spec(self, arc_spec: str):
@@ -204,21 +229,24 @@ class GlacierVault:
                 archives.append(arc)
         return archives
     
-    def request_download(self, archive_id):
-        response = self.client.initiate_job(
+    def request_download(self, archive_id, tier: str ='Standard') -> str:
+        response = self.glacier_client.initiate_job(
             vaultName=self.vault_name,
             jobParameters={
                 'Type': 'archive-retrieval',
                 'ArchiveId': archive_id,
-                'Tier': 'Standard'  # Can also use 'Expedited' or 'Bulk'
+                'Tier': tier
             }
         )
-        pprint(response)
+
+        if self.verbose:
+            pprint(response)
+
         job_id = response['jobId']
-        print(f"Retrieval job initiated. Job ID: {job_id}")
+        return job_id
 
     def delete_archive(self, archive_id):
-        r = self.client.delete_archive(
+        r = self.glacier_client.delete_archive(
             vaultName = self.vault_name,
             archiveId = archive_id
         )
@@ -228,7 +256,7 @@ class GlacierVault:
 
     def download_job(self, job_id: str, stream: IO[bytes], update_fn = None):
         chunk_size = 1024 * 1024
-        response = self.client.get_job_output(vaultName=self.vault_name, jobId=job_id)
+        response = self.glacier_client.get_job_output(vaultName=self.vault_name, jobId=job_id)
         written = 0
         for chunk in response['body'].iter_chunks(chunk_size=chunk_size):
             written += stream.write(chunk)

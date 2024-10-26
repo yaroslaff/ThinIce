@@ -12,7 +12,9 @@ def colorize_status_jobs(status: str) -> str:
 
     color_map = {
         'Succeeded': 'green',
-        'True': 'green'
+        'True': 'green',
+        'Expedited': 'yellow bold',
+        'Standard': 'cyan'
     }
 
     if status in color_map:
@@ -35,6 +37,7 @@ def jobs():
     table.add_column("Age", style="blue")
     table.add_column("Completed")
     table.add_column("StatusCode", style="dim white")
+    table.add_column("Tier", style="dim white")
     table.add_column("Description", style="white")
     table.add_column("Size")
     table.add_column("ArchiveId...", style="#808080")
@@ -67,6 +70,7 @@ def jobs():
             age,
             colorize_status_jobs(str(job['Completed'])),
             colorize_status_jobs(job['StatusCode']),
+            colorize_status_jobs(job.get('Tier')),
             field_desc,
             size,
             field_archive_id

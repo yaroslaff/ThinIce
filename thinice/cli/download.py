@@ -22,11 +22,18 @@ from pathlib import Path
 def request_file(
         arc_spec: Annotated[str, typer.Argument(help='ArchiveId (first letters) or Description')] = None,
         multiple: Annotated[bool, 
-            typer.Option('--multiple', '-m', help='Request multiple files at once')] = False
+            typer.Option('--multiple', '-m', help='Request multiple files at once')] = False,
+        tier: Annotated[str, 
+            typer.Option('--tier', '-t', help='Retrieval tier: Expedited (1-5min) / Standard (3-5hr, default) / Bulk (5-12hr)')] = "Standard"
     ):
 
+    tier = tier.capitalize()
+
+    if tier not in ['Expedited', 'Standard', 'Bulk']:
+        print("Invalid tier, use Expedited / Standard / Bulk", file=sys.stderr)
+        sys.exit(1)
+
     archives = app.vault.get_by_arc_spec(arc_spec)
-    pprint(archives)
     if not archives:
         print("No archives found")
         return
@@ -36,7 +43,7 @@ def request_file(
         sys.exit(1)
     
     for arc in archives:
-        app.vault.request_download(archive_id=arc['ArchiveId'])
+        app.vault.request_download(archive_id=arc['ArchiveId'], tier=tier)
 
 @typerapp.command("download", rich_help_panel=panel_updown,
              help='Download warm file',

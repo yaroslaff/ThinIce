@@ -69,6 +69,18 @@ def kmgt(sz, frac=1):
 
             return tpl.format(n,k)
 
+def from_kmgt(x: str) -> int:
+    t={
+        'K': pow(1024, 1),
+        'M': pow(1024, 2),
+        'G': pow(1024, 3),
+        'T': pow(1024, 4),
+        '': 1}
+
+    suffix = x[len(x)-1].upper()
+    if suffix in t:
+        return int(x[0:(len(x)-1)]) * t[suffix]
+    return int(x)
 
 class UnusedGlacierJobIterator:
     def __init__(self, vault_name: str, client: GlacierClient):
