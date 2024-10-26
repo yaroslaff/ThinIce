@@ -1,22 +1,24 @@
 # ThinIce - friendly client for Amazon Glacier 
 
-## Understanding difference: Amazon S3 Glacier vs Amazon S3 Glacier Deep Archive
-These are two different services. (But both offers low-cost storage)
+Understanding the difference: Amazon S3 Glacier vs. Amazon S3 Glacier Deep Archive 
+These are two different services (though both offer low-cost storage).
+
+|                                          | Glacier            | Glacier deep archive | 
+| ---                                      | ---                | ---                  | 
+| Launched                                 | 2012               | 2018                 |
+| Storage cost (USD/GB/mo)                 | $0.004             | $0.00099             |
+| Retrieval cost (Gb) and time (Expedited) | **$0.036, 1-5min** | Not available        |
+| Retrieval cost/time (Standard)           | $0.012, 3-5h       | $0.0018 (12h)          |
+| Retrieval cost/time (Bulk)               | $0, 5-12h          | $0.0025 (48h)        |
+
+> Note: Prices depend on the region and can change over time, and they may not always be very clear. For current pricing, see: https://aws.amazon.com/s3/glacier/pricing/, https://aws.amazon.com/s3/pricing/, and https://docs.aws.amazon.com/AmazonS3/latest/userguide/restoring-objects-retrieval-options.html.
 
 
-|                                          | Glacier           | Glacier deep archive | 
-| ---                                      | ---               | ---                  | 
-| Launched                                 | 2012              | 2018                 |
-| Storage cost (USD/GB/mo)                 | $0.004            | $0.00099             |
-| Retrieval cost (Gb) and time (Expedited) | **$0.03, 1-5min** | Not available        |
-| Retrieval cost/time (Standard)           | $0.01, 3-5h       | $0.02 (12h)          |
-| Retrieval cost/time (Bulk)               | $0.0025, 5-12h    | $0.0025 (48h)        |
+While Glacier Deep Archive is four times cheaper for storage, Glacier offers Expedited retrieval, which is not very expensive. When needed, you can recover files almost as quickly as if they were on your local disk (compared to 12 hours with Deep Archive). This difference can be crucial in business cases. Additionally, Standard and Bulk retrieval options are available at a lower cost.
 
-While Glacier Deep Archive is 4 times cheaper for storage, Glacier has Expedited retrieval and when you need it, you can recover almost as quickly as if files are on your disk (vs 12hrs with Deep Archive), this difference could be very important in business cases.
+Even if you keep 1 TB of archives, it costs just $4 per month for Glacier (compared to $1 per month for Deep Archive). You spend an extra $3 per month for peace of mind, knowing you can recover files in a few minutes.
 
-Even if you keep 1Tb of archives this cost you just $4/mo for Glacier (vs $1/mo for Deep Archive). You spend extra $3/mo, but you can recover files in a minute.
-
-ThinIce works with Glacier, but not with Glacier Deep Archive (use tools like [s3cmd](https://github.com/s3tools/s3cmd) or [s4cmd](https://github.com/bloomreach/s4cmd) for it).
+ThinIce works with Glacier but not with Glacier Deep Archive. For the latter, consider using tools like [s3cmd](https://github.com/s3tools/s3cmd) or [s4cmd](https://github.com/bloomreach/s4cmd).
 
 ## Install
 ~~~shell
@@ -28,7 +30,8 @@ pip3 install thinice
 ~~~
 
 ## Configuration
-Create config dir `mkdir ~/.config/thinice` and make config file `~/.config/thinice/thinice.env`, example:
+Create the config directory using the command `mkdir ~/.config/thinice`, and then create the config file at `~/.config/thinice/thinice.env`. Here’s an example:
+
 ~~~
 AWS_ACCESS_KEY_ID = AK...
 AWS_SECRET_ACCESS_KEY = FN...
@@ -36,27 +39,28 @@ AWS_REGION = eu-south-1
 AWS_GLACIER_VAULT = mytest
 ~~~
 
-Or you can supply this via options: `--key-id`, `--secret-key`, `--region` and `--vault`.
+Alternatively, you can supply this information via options: `--key-id`, `--secret-key`, `--region`, and `--vault`.
 
 ## Basic commands
 ### Inventory
-First, you need to initialize local inventory:
+First, you need to initialize the local inventory:
 ~~~shell
-# request inventory
+# Request inventory
 thinice inventory
 
-# watch when job complete (will take few hours)
+# Monitor when the job is complete (this may take a few hours)
 thinice job
 
-# now accept inventory with same command
+# Accept the inventory with the same command
 thinice inventory
 
-# now you can list files
+# Now you can list files
 thinice ls
 ~~~
 
 ### Upload
-Thinice support multipart uploads and can upload very large files
+Thinice supports multipart uploads and can handle upload of very large files
+
 ~~~shell
 # No description explicitly given, description will be myarchive.zip
 thinice upload /path/to/myarchive.zip
@@ -67,20 +71,22 @@ thinice upload /path/to/myarchive.zip "My archive from 01/02/2003"
 
 ### Download
 ~~~shell
-# To download, we should *warm* file, transit it from cold to warm storage
-thinice request myarchive.zip
+# To download, we should *warm* the file by transitioning it from cold to warm storage
+# Here we use expedited retrieval tier to get file very fast.
+thinice request myarchive.zip -t expedited
 
-# or by first part of ArchiveId
+# Or by the first part of the ArchiveId (default: standard tier)
 thinice request S39to
 
-# watch it in list to become warm (will take few hours)
+# Monitor the list to see when it becomes warm (this will take a few hours)
 thinice ls
 
-# and finally download it
-# file with this description MyServer.tar.gz will be saved as MyServer.tar.gz (only if description is a filename)
+
+# Finally, download it
+# A file with the description MyServer.tar.gz will be saved as MyServer.tar.gz (only if the description is a filename)
 thinice download myarchive.zip
 
-# download file with ArchiveId starting with this characters
+# Download a file with an ArchiveId starting with these characters
 thinice download S39to myarchive.zip
 ~~~
 
