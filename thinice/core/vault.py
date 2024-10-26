@@ -33,7 +33,7 @@ class GlacierVault:
     vault_name: str
     verbose: bool
     
-    def __init__(self, credentials: AWSCredentials, vault_name: str | None = None, verbose=False):
+    def __init__(self, credentials: AWSCredentials, vault_name: Optional[str] = None, verbose=False):
         self.verbose = verbose
         self.credentials = credentials
         self.vault_name = vault_name
@@ -164,7 +164,7 @@ class GlacierVault:
 
         return archive_id
 
-    def upload_file(self, path: Path, description: str | None):
+    def upload_file(self, path: Path, description: Optional[str]):
         description = description or path.name
         with open(path, 'rb') as stream:
             archiveId = self.upload_stream(stream=stream, description=description)
