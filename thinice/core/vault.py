@@ -148,8 +148,7 @@ class GlacierVault:
             checksum=tree_hash,
             archive_size=total_size)                
 
-        # record this upload
-        self.inventory.add_uploaded_file(archiveId=archive_id, description=description, size=total_size)
+        # record this upload        
         self.inventory.add_uploaded_file(
             archiveId=archive_id, 
             sha256=sha256sum,

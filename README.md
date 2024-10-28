@@ -1,4 +1,8 @@
-# ThinIce - friendly client for Amazon Glacier 
+# ThinIce - friendly client for Amazon Glacier
+
+Thinice is a user-friendly client for AWS Glacier that features a local inventory. This local inventory allows you to instantly list uploaded archives, as retrieving inventory from Glacier can take several hours.
+
+With the local inventory, you can quickly list archives by filename (ArchiveDescription), size, and upload age.
 
 ## Understanding the difference: Amazon S3 Glacier vs. Amazon S3 Glacier Deep Archive 
 These are two different services (though both offer low-cost storage).
@@ -8,7 +12,7 @@ These are two different services (though both offer low-cost storage).
 | Launched                                 | 2012               | 2018                 |
 | Storage cost (USD/GB/mo)                 | $0.004             | $0.00099             |
 | Retrieval cost (Gb) and time (Expedited) | **$0.036, 1-5min** | Not available        |
-| Retrieval cost/time (Standard)           | $0.012, 3-5h       | $0.0018 (12h)          |
+| Retrieval cost/time (Standard)           | $0.012, 3-5h       | $0.0018 (12h)        |
 | Retrieval cost/time (Bulk)               | $0, 5-12h          | $0.0025 (48h)        |
 
 > Note: Prices depend on the region and can change over time, and they may not always be very clear. For current pricing, see: https://aws.amazon.com/s3/glacier/pricing/, https://aws.amazon.com/s3/pricing/, and https://docs.aws.amazon.com/AmazonS3/latest/userguide/restoring-objects-retrieval-options.html.

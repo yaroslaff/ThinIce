@@ -79,13 +79,44 @@ class Inventory():
 
         if cur_inv_date is None or cur_inv_date < new_int_date:
             self.inventory['latest_inventory'] = inv
+            self.cleanup()
             return True
         else:
             # print(f"current inv from {cur_inv_date} is not older then {new_int_date}")
             return False
 
+
         # self.inventory['latest_inventory'] = response
     
+    def cleanup(self):
+        inv_date = self.inventory_date()
+        # remove from deleted files which are already deleted
+        for aid in self.inventory['deleted_files']:
+            if not self._from_arclist_by_id(aid):
+                # forget about deleted archive
+                self.inventory['deleted_files'].remove(aid)
+
+        uploaded = list()
+        lost = list()
+        # remove from uploaded files
+        for up_id, uparchive in self.inventory['uploaded_files'].items():
+            if self._from_arclist_by_id(up_id):
+                uploaded.append(up_id)
+            else:
+                up_date = iso2dt(uparchive['CreationDate'])
+                age = inv_date - up_date
+                if age.days > 2:
+                    lost.append(up_id)
+        
+        for up_id in uploaded:
+            del self.inventory['uploaded_files'][up_id]
+
+        for up_id in lost:
+            del self.inventory['uploaded_files'][up_id]
+
+
+
+
     def get_latest_inventory(self):
         return self.inventory['latest_inventory']
 
@@ -125,13 +156,13 @@ class Inventory():
 
     def add_uploaded_file(self, archiveId: str, sha256: str, basename: str, description: str, size: int, localdesc: str = None):
         self.inventory['uploaded_files'][archiveId] = {
-            'uploaded_at': datetime.datetime.now(tz=datetime.timezone.utc).isoformat(timespec='seconds'),
-            'archiveId': archiveId,
+            'CreationDate': datetime.datetime.now(tz=datetime.timezone.utc).isoformat(timespec='seconds'),
+            'ArchiveId': archiveId,
             'sha256': sha256,
             'basename': basename,
-            'description': description,
+            'ArchiveDescription': description,
             'localdesc': localdesc,
-            'size': size
+            'Size': size
         }
 
     """ DELETED FILES """
@@ -147,12 +178,27 @@ class Inventory():
             archive = self.get_archive_info(f['ArchiveId'])
             archives.append(archive)
 
+        for f in self.inventory['uploaded_files']:
+            archive = self.get_uploaded_archive_info(f)
+            archives.append(archive)
+
         return archives
     
 
     def _from_arclist_by_id(self, archive_id: str):
         return next((item for item in self.inventory['latest_inventory']['ArchiveList'] if item['ArchiveId'] == archive_id), None)
 
+
+    def get_uploaded_archive_info(self, archive_id: str):
+        utcnow = datetime.datetime.now(tz=datetime.timezone.utc)
+        archive = dict(self.inventory['uploaded_files'][archive_id])
+        pprint(archive)
+        archive['sz'] = kmgt(archive['Size'], frac=0)
+        uploaded = iso2dt(archive['CreationDate'])
+        archive['date'] = uploaded.strftime('%Y-%m-%d')
+        archive['age'] = (utcnow - uploaded).days
+        archive['status'] = 'Uploaded'
+        return archive
 
     def get_archive_info(self, archive_id: str):
         utcnow = datetime.datetime.now(tz=datetime.timezone.utc)
