@@ -4,26 +4,6 @@ Thinice is a user-friendly client for AWS Glacier that features a local inventor
 
 With the local inventory, you can quickly list archives by filename (ArchiveDescription), size, and upload age.
 
-## Understanding the difference: Amazon S3 Glacier vs. Amazon S3 Glacier Deep Archive 
-These are two different services (though both offer low-cost storage).
-
-|                                          | Glacier            | Glacier deep archive | 
-| ---                                      | ---                | ---                  | 
-| Launched                                 | 2012               | 2018                 |
-| Storage cost (USD/GB/mo)                 | $0.004             | $0.00099             |
-| Retrieval cost (Gb) and time (Expedited) | **$0.036, 1-5min** | Not available        |
-| Retrieval cost/time (Standard)           | $0.012, 3-5h       | $0.0018 (12h)        |
-| Retrieval cost/time (Bulk)               | $0, 5-12h          | $0.0025 (48h)        |
-
-> Note: Prices depend on the region and can change over time, and they may not always be very clear. For current pricing, see: https://aws.amazon.com/s3/glacier/pricing/, https://aws.amazon.com/s3/pricing/, and https://docs.aws.amazon.com/AmazonS3/latest/userguide/restoring-objects-retrieval-options.html.
-
-
-While Glacier Deep Archive is four times cheaper for storage, Glacier offers Expedited retrieval, which is not very expensive. When needed, you can recover files almost as quickly as if they were on your local disk (compared to 12 hours with Deep Archive). This difference can be crucial in business cases. Additionally, Standard and Bulk retrieval options are available at a lower cost.
-
-For each 1 TB of archives it costs just $4 per month for Glacier (compared to $1 per month for Deep Archive). You spend an extra $3 per month for peace of mind, knowing you can recover files in a few minutes.
-
-ThinIce works with Glacier but not with Glacier Deep Archive. For the latter, consider using tools like [s3cmd](https://github.com/s3tools/s3cmd) or [s4cmd](https://github.com/bloomreach/s4cmd).
-
 ## Install
 [pipx](https://github.com/pypa/pipx) method is recommended (pipx is easy to install).
 ~~~shell

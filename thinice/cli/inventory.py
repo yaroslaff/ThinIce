@@ -1,7 +1,7 @@
 from rich.pretty import pprint
 from .app import typerapp, panel_main
 from . import app
-from ..core.utils import td2str
+from ..core.utils import td2str, iso2dt
 from pathlib import Path
 from typing_extensions import Annotated
 import typer
@@ -26,7 +26,6 @@ def request_inventory(
         rprint(Text(f"Requested new inventory from glacier (because --force)", style="yellow"))    
         return
 
-
     # do we have ongoing job?
     jobs = app.vault.list_jobs()
     
@@ -46,8 +45,8 @@ def request_inventory(
 
     if active_job:
         # get age of job as HH:MM, difference between now and lastjob['CreationDate'] e.g. 2024-10-25T12:59:35.451Z
-        age = td2str(datetime.datetime.now(tz=datetime.timezone.utc) - datetime.datetime.fromisoformat(active_job['CreationDate']))
-        rprint(Text(f"Ongoing job found (started {age}). Use --force to repeat", style="yellow"))
+        age = td2str(datetime.datetime.now(tz=datetime.timezone.utc) - iso2dt(active_job['CreationDate']))
+        rprint(Text(f"Ongoing job found (started {age} ago). Use --force to repeat", style="yellow"))
         return
 
     # if we are here, request new inventory
