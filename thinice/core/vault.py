@@ -180,7 +180,8 @@ class GlacierVault:
 
         if latest_job:
             # isn't it too recent?
-            raise InventoryJobActive(f"Active inventory job ({latest_job['JobId'][:5]}..) found. Completed: {latest_job['Completed']}, age: {td2str(now - iso2dt(latest_job['CreationDate']))}")
+            if not force:
+                raise InventoryJobActive(f"Active inventory job ({latest_job['JobId'][:5]}..) found. Completed: {latest_job['Completed']}, age: {td2str(now - iso2dt(latest_job['CreationDate']))}")
 
         response = self.glacier_client.initiate_job(
             vaultName=self.vault_name,
