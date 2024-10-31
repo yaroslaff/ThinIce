@@ -75,9 +75,9 @@ class Inventory():
             cur_inv_date = iso2dt(self.inventory['latest_inventory']['InventoryDate'])
         except KeyError:
             cur_inv_date = None
-        new_int_date = iso2dt(inv['InventoryDate'])
+        new_inv_date = iso2dt(inv['InventoryDate'])
 
-        if cur_inv_date is None or cur_inv_date < new_int_date:
+        if cur_inv_date is None or cur_inv_date < new_inv_date:
             self.inventory['latest_inventory'] = inv
             self.cleanup()
             return True
