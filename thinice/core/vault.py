@@ -1,3 +1,4 @@
+import boto3.exceptions
 from mypy_boto3_glacier import GlacierClient
 from mypy_boto3_glacier.type_defs import ListJobsOutputTypeDef
 
@@ -13,6 +14,7 @@ from .exceptions import ArchiveNotRetrieved, InventoryJobActive
 from rich.pretty import pprint
 import rich.progress
 import boto3
+from botocore.exceptions import ClientError
 import hashlib
 import json
 import datetime
@@ -75,7 +77,15 @@ class GlacierVault:
         assert job['Action'] == 'InventoryRetrieval'
         assert job['Completed'] == True and job['StatusCode'] == 'Succeeded'
 
-        job_output = self.glacier_client.get_job_output(accountId='-', vaultName=self.vault_name, jobId=job['JobId'])
+        try:
+            job_output = self.glacier_client.get_job_output(accountId='-', vaultName=self.vault_name, jobId=job['JobId'])
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ResourceNotFoundException':
+                # job result is gone
+                if self.verbose:
+                    print(f"Job {job['JobId']} result is gone ({e})")
+                return False
+
         inv = json.load(job_output['body'])
         if self.inventory.set_latest_inventory(inv):
             self.inventory.save()
