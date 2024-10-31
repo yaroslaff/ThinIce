@@ -25,7 +25,7 @@ def request_inventory(
 
     if force:
         app.vault.request_inventory(force=force)
-        rprint(Text(f"Requested new inventory from glacier (because --force)", style="yellow"))    
+        rprint(f"Requested new inventory from glacier (because --force), see progress with [code]thinice jobs[/code]")
         return
 
     # do we have ongoing job?
