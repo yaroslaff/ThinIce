@@ -7,9 +7,9 @@ import math
 from .credentials import AWSCredentials
 from .locations import Locations
 from .inventory import Inventory
-from .utils import iso2dt, calculate_sha256, from_kmgt
+from .utils import iso2dt, calculate_sha256, from_kmgt, td2str
 from .rawglacier.multipart import calculate_part_size, initiate_upload, upload_part, complete_upload, calculate_tree_hash
-from .exceptions import ArchiveNotRetrieved
+from .exceptions import ArchiveNotRetrieved, InventoryJobActive
 from rich.pretty import pprint
 import rich.progress
 import boto3
@@ -61,7 +61,7 @@ class GlacierVault:
         return response['VaultList']
     
     def list_jobs(self) -> ListJobsOutputTypeDef:
-        """ request current jobs and save it in inventory """
+        """ request current jobs and save it in local inventory """
         response = self.glacier_client.list_jobs(vaultName=self.vault_name)
         self.inventory.set_latest_jobs(response)
         self.inventory.save()
@@ -177,13 +177,10 @@ class GlacierVault:
 
         now = datetime.datetime.now(tz=datetime.timezone.utc)
         latest_job = self.inventory.get_latest_job(action='InventoryRetrieval')
+
         if latest_job:
             # isn't it too recent?
-            latest_job_dt = iso2dt(latest_job['CreationDate'])
-            if ((now - latest_job_dt) < self.repeat_request) and not force:
-                print("too recent")
-                return
-        
+            raise InventoryJobActive(f"Active inventory job ({latest_job['JobId'][:5]}..) found. Completed: {latest_job['Completed']}, age: {td2str(now - iso2dt(latest_job['CreationDate']))}")
 
         response = self.glacier_client.initiate_job(
             vaultName=self.vault_name,

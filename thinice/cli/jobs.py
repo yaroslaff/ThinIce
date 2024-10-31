@@ -7,6 +7,7 @@ from rich.table import Table
 import rich
 from rich.console import Console
 import datetime
+from typing_extensions import Annotated
 
 console=Console()
 
@@ -32,8 +33,15 @@ thinice jobs\n
 ~~~
 """
 )
-def jobs():
+def jobs(
+    raw: Annotated[bool, typer.Option('--raw', rich_help_panel=panel_main, help='dump full raw data')] = False,
+):
     jobs = app.vault.list_jobs()
+
+    if raw:
+        pprint(jobs)
+        return
+
     table = Table(title="Jobs")
     table.add_column("Action",)
     table.add_column("Age", style="blue")

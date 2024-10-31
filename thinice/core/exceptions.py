@@ -1,8 +1,11 @@
 class ThinIceError(Exception):
     pass
 
-class ArchiveNotRetrieved(Warning):
+class ArchiveNotRetrieved(ThinIceError):
     pass
 
-class NoInventory(Warning):
+class NoInventory(ThinIceError):
+    pass
+
+class InventoryJobActive(ThinIceError):
     pass

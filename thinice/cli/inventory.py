@@ -2,12 +2,14 @@ from rich.pretty import pprint
 from .app import typerapp, panel_main
 from . import app
 from ..core.utils import td2str, iso2dt
+from ..core.exceptions import InventoryJobActive
 from pathlib import Path
 from typing_extensions import Annotated
 import typer
 import datetime
 from rich import print as rprint
 from rich.text import Text
+import sys
 
 
 @typerapp.command("inventory", rich_help_panel=panel_main,
@@ -40,7 +42,7 @@ def request_inventory(
             if app.vault.accept_inventory(job=job):
                 accepted = True
         if accepted:
-            rprint(f"Accepted inventory from glacier. Do [dim white]thinice ls[/dim white] to list archives")
+            rprint(f"Accepted inventory from glacier. Do [code]thinice ls[/code] to list archives")
             return
 
     if active_job:
@@ -50,6 +52,10 @@ def request_inventory(
         return
 
     # if we are here, request new inventory
-    app.vault.request_inventory(force=force)
-    print(f"Requested new inventory from glacier")
+    try:
+        app.vault.request_inventory(force=force)
+        print(f"Requested new inventory from glacier")
+    except InventoryJobActive as e:
+        rprint(Text(str(e), style="yellow"), file=sys.stderr)
+        rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory --force[/code] to force request new inventory', file=sys.stderr)        
     
