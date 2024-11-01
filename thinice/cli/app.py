@@ -31,7 +31,7 @@ def callback(ctx: typer.Context,
     secret_key: Annotated[str, typer.Option(envvar='AWS_SECRET_ACCESS_KEY', show_default=False, rich_help_panel=panel_env, help='AWS secret key')],
     region: Annotated[str, typer.Option(envvar='AWS_REGION', show_default=False, rich_help_panel=panel_env, help='region')],
     vault_name: Annotated[str, typer.Option('--vault',envvar='AWS_GLACIER_VAULT', show_default=False, rich_help_panel=panel_env, help='Vault Name')] = None,
-    verbose: Annotated[bool, typer.Option('-v', '--verbose', show_default=False, rich_help_panel=panel_env, help='verbose mode')] = None
+    verbose: Annotated[bool, typer.Option('-v', '--verbose', show_default=False, rich_help_panel=panel_env, help='verbose mode')] = False
     ):
     """
     Client for Amazon Glacier

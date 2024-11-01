@@ -2,7 +2,7 @@ from rich.pretty import pprint
 from .app import typerapp, panel_main
 from . import app
 from ..core.utils import td2str, iso2dt
-from ..core.exceptions import InventoryJobActive
+from ..core.exceptions import InventoryJobActive, InventoryIsOlder, InventoryIsSame
 from pathlib import Path
 from typing_extensions import Annotated
 import typer
@@ -39,8 +39,14 @@ def request_inventory(
         accepted = False
         # there could be more then one inventories
         for job in completed_jobs:
-            if app.vault.accept_inventory(job=job):
-                accepted = True
+            try:
+                if app.vault.accept_inventory(job=job):
+                    accepted = True
+            except InventoryIsOlder as e:
+                rprint(Text(str(f"Do not accept inventory job {job['JobId'][:5]} from WWWWW: it's old"), style="yellow"), file=sys.stderr)
+            except InventoryIsSame as e:
+                rprint(Text(str(e), style="yellow"), file=sys.stderr)
+
         if accepted:
             rprint(f"Accepted inventory from glacier. Do [code]thinice ls[/code] to list archives")
             return
@@ -48,7 +54,7 @@ def request_inventory(
     if active_job:
         # get age of job as HH:MM, difference between now and lastjob['CreationDate'] e.g. 2024-10-25T12:59:35.451Z
         age = td2str(datetime.datetime.now(tz=datetime.timezone.utc) - iso2dt(active_job['CreationDate']))
-        rprint(Text(f"Ongoing job found (started {age} ago). Use --force to repeat", style="yellow"))
+        rprint(Text(f"Ongoing job {active_job['JobId'][:5]}... found (started {age} ago). Use --force to repeat", style="yellow"))
         return
 
     # if we are here, request new inventory

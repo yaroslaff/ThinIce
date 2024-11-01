@@ -49,10 +49,7 @@ class GlacierVault:
         self.s3_client = self.session.client('s3')
 
         if vault_name is not None:
-            self.inventory = Inventory(locations=self.locations, vault_name=vault_name)
-
-        if self.verbose:
-            print("Verbose mode")
+            self.inventory = Inventory(locations=self.locations, vault_name=vault_name, verbose=verbose)
 
     def list_vaults(self):
         response = self.glacier_client.list_vaults()
@@ -69,6 +66,7 @@ class GlacierVault:
         self.inventory.save()
         
         if self.verbose:
+            print("vault.list_jobs():")
             pprint(response)
 
         return response['JobList']
@@ -79,6 +77,7 @@ class GlacierVault:
 
         try:
             job_output = self.glacier_client.get_job_output(accountId='-', vaultName=self.vault_name, jobId=job['JobId'])
+
         except ClientError as e:
             if e.response['Error']['Code'] == 'ResourceNotFoundException':
                 # job result is gone
@@ -87,7 +86,7 @@ class GlacierVault:
                 return False
 
         inv = json.load(job_output['body'])
-        if self.inventory.set_latest_inventory(inv):
+        if self.inventory.set_latest_inventory(inv, jobid=job['JobId']):
             self.inventory.save()
             return True
         return False
@@ -186,7 +185,7 @@ class GlacierVault:
         }
 
         now = datetime.datetime.now(tz=datetime.timezone.utc)
-        latest_job = self.inventory.get_latest_job(action='InventoryRetrieval')
+        latest_job = self.inventory.get_latest_job(action='InventoryRetrieval', completed=False)
 
         if latest_job:
             # isn't it too recent?
@@ -256,10 +255,14 @@ class GlacierVault:
         return job_id
 
     def delete_archive(self, archive_id):
+        if self.verbose:
+            print("delete archive", archive_id)
         r = self.glacier_client.delete_archive(
             vaultName = self.vault_name,
             archiveId = archive_id
         )
+        if self.verbose:
+            pprint(r)
 
         self.inventory.add_deleted_file(archive_id)
         self.inventory.save()

@@ -7,13 +7,14 @@ from .utils import iso2dt
 from .locations import Locations
 from rich.pretty import pprint
 from .utils import kmgt, iso2dt, get_element_by_field
-from .exceptions import NoInventory
+from .exceptions import NoInventory, InventoryIsOlder, InventoryIsSame
 
 class Inventory():
 
     inventory: dict
 
-    def __init__(self, locations: Locations, vault_name: str):
+    def __init__(self, locations: Locations, vault_name: str, verbose: bool = False):
+        self.verbose = verbose
         self.locations = locations
         self.vault_name = vault_name
         self.path = locations.base_path / (vault_name + '.json')
@@ -66,7 +67,7 @@ class Inventory():
         except KeyError:
             return None
 
-    def set_latest_inventory(self, inv: dict) -> bool: 
+    def set_latest_inventory(self, inv: dict, jobid: None) -> bool: 
         if not self.inventory['latest_inventory']:
             self.inventory['latest_inventory'] = inv
             return
@@ -74,16 +75,24 @@ class Inventory():
         try:
             cur_inv_date = iso2dt(self.inventory['latest_inventory']['InventoryDate'])
         except KeyError:
-            cur_inv_date = None
-        new_inv_date = iso2dt(inv['InventoryDate'])
-
-        if cur_inv_date is None or cur_inv_date < new_inv_date:
+            # No local inventory yet, accept
             self.inventory['latest_inventory'] = inv
             self.cleanup()
-            return True
-        else:
-            # print(f"current inv from {cur_inv_date} is not older then {new_int_date}")
-            return False
+            return
+
+        new_inv_date = iso2dt(inv['InventoryDate'])
+
+        if cur_inv_date == new_inv_date:
+            raise InventoryIsSame(f'Do not accept inventory job {jobid[:5]}. Local inventory date: {cur_inv_date.strftime("%Y-%m-%d %H:%M:%S")}; Job inventory date: {new_inv_date.strftime("%Y-%m-%d %H:%M:%S")}')
+
+            
+        if cur_inv_date > new_inv_date:
+            raise InventoryIsOlder(f'Do not accept inventory job {jobid[:5]}. Local inventory date: {cur_inv_date.strftime("%Y-%m-%d %H:%M:%S")}; Job inventory date: {new_inv_date.strftime("%Y-%m-%d %H:%M:%S")}')
+
+
+        self.inventory['latest_inventory'] = inv
+        self.cleanup()
+        return True
 
 
         # self.inventory['latest_inventory'] = response
@@ -122,13 +131,17 @@ class Inventory():
 
     """ JOBS """
 
-    def get_latest_job(self, job_id: str = None, action: str = None, archive_id: str = None):
+    def get_latest_job(self, job_id: str = None, action: str = None, archive_id: str = None, completed=None):
         """ get latest submitted job of type action """
 
         latest_job = None
         latest_job_dt = None
 
-        for job in self.inventory['latest_jobs']['JobList']:            
+        for job in self.inventory['latest_jobs']['JobList']:
+
+            if completed is not None and job['Completed'] != completed:
+                continue
+
             if action and job['Action'] != action:
                 continue
 
@@ -192,7 +205,6 @@ class Inventory():
     def get_uploaded_archive_info(self, archive_id: str):
         utcnow = datetime.datetime.now(tz=datetime.timezone.utc)
         archive = dict(self.inventory['uploaded_files'][archive_id])
-        pprint(archive)
         archive['sz'] = kmgt(archive['Size'], frac=0)
         uploaded = iso2dt(archive['CreationDate'])
         archive['date'] = uploaded.strftime('%Y-%m-%d')
