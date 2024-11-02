@@ -71,7 +71,7 @@ class GlacierVault:
 
         return response['JobList']
 
-    def accept_inventory(self, job: dict) -> bool:
+    def accept_inventory(self, job: dict, force_accept: bool = False) -> bool:
         assert job['Action'] == 'InventoryRetrieval'
         assert job['Completed'] == True and job['StatusCode'] == 'Succeeded'
 
@@ -86,7 +86,7 @@ class GlacierVault:
                 return False
 
         inv = json.load(job_output['body'])
-        if self.inventory.set_latest_inventory(inv, jobid=job['JobId']):
+        if self.inventory.set_latest_inventory(inv, jobid=job['JobId'], force=force_accept):
             self.inventory.save()
             return True
         return False

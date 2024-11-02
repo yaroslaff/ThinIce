@@ -45,7 +45,7 @@ def ls_archives(
     size: Annotated[str, typer.Option(help='size, e.g. "10G" or "-1G"')] = None,
     age: Annotated[int, typer.Option(help='age in days, e.g. "30" or "-30"')] = None,
     warm: Annotated[bool, typer.Option(
-        '-w', '--warp',
+        '-w', '--warm',
         rich_help_panel=panel_list, help='Display only warm archives')] = False,
     no_jobs: Annotated[bool, typer.Option(
         '-n', '--no-jobs',

@@ -40,7 +40,7 @@ def request_inventory(
         # there could be more then one inventories
         for job in completed_jobs:
             try:
-                if app.vault.accept_inventory(job=job):
+                if app.vault.accept_inventory(job=job, force_accept=False):
                     accepted = True
             except InventoryIsOlder as e:
                 rprint(Text(str(f"Do not accept inventory job {job['JobId'][:5]} from WWWWW: it's old"), style="yellow"), file=sys.stderr)

@@ -67,7 +67,7 @@ class Inventory():
         except KeyError:
             return None
 
-    def set_latest_inventory(self, inv: dict, jobid: None) -> bool: 
+    def set_latest_inventory(self, inv: dict, jobid: None, force: bool = False) -> bool: 
         if not self.inventory['latest_inventory']:
             self.inventory['latest_inventory'] = inv
             return
@@ -82,13 +82,11 @@ class Inventory():
 
         new_inv_date = iso2dt(inv['InventoryDate'])
 
-        if cur_inv_date == new_inv_date:
+        if cur_inv_date == new_inv_date and not force:
             raise InventoryIsSame(f'Do not accept inventory job {jobid[:5]}. Local inventory date: {cur_inv_date.strftime("%Y-%m-%d %H:%M:%S")}; Job inventory date: {new_inv_date.strftime("%Y-%m-%d %H:%M:%S")}')
-
             
         if cur_inv_date > new_inv_date:
             raise InventoryIsOlder(f'Do not accept inventory job {jobid[:5]}. Local inventory date: {cur_inv_date.strftime("%Y-%m-%d %H:%M:%S")}; Job inventory date: {new_inv_date.strftime("%Y-%m-%d %H:%M:%S")}')
-
 
         self.inventory['latest_inventory'] = inv
         self.cleanup()
@@ -103,7 +101,12 @@ class Inventory():
         for aid in self.inventory['deleted_files']:
             if not self._from_arclist_by_id(aid):
                 # forget about deleted archive
+                if self.verbose:
+                    print(f'Archive {aid} is not in the inventory anymore. Removing it from deleted files.')
                 self.inventory['deleted_files'].remove(aid)
+            else:
+                if self.verbose:
+                    print(f'Archive {aid} is still in the inventory. Keeping it in deleted files.')
 
         uploaded = list()
         lost = list()
