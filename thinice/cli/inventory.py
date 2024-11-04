@@ -34,10 +34,13 @@ def accept_inventory(force: bool=False) -> bool:
                 if app.vault.accept_inventory(job=job):
                     print(f"Accepted inventory from glacier")
                     return True
-            except InventoryJobActive as e:
+            except InventoryIsOlder as e:
+                rprint(Text(str(f"Do not accept inventory job {job['JobId'][:5]} from WWWWW: it's old"), style="yellow"), file=sys.stderr)
+                return False
+            except InventoryIsSame as e:
                 rprint(Text(str(e), style="yellow"), file=sys.stderr)
-                rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory --force[/code] to force request new inventory', file=sys.stderr)
-    
+                return False
+
     else:
         rprint(Text(str("No completed inventory jobs found"), style="yellow"), file=sys.stderr)
         rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory --force[/code] to force request new inventory', file=sys.stderr)
@@ -51,7 +54,7 @@ thinice inventory\n
 ~~~
 """
 )
-def request_inventory(
+def inventory_command(
     subcommand: Annotated[str, typer.Argument(help='subcommand: auto/request/accept (default: auto)')] = "auto",
     force: Annotated[bool, typer.Option('--force', help='Force request even if requested recently')] = False,
     ):
@@ -72,7 +75,6 @@ def request_inventory(
 
     # here we should autodetect
   
-
     if accept_inventory(force=force):
         return
     
