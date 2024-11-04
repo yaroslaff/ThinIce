@@ -71,32 +71,20 @@ def request_inventory(
 
 
     # here we should autodetect
+  
+
+    if accept_inventory(force=force):
+        return
     
     # do we have ongoing job?
-    jobs = app.vault.list_jobs()
-    
+    jobs = app.vault.list_jobs()    
     active_job = next((item for item in jobs if item.get('Action') == 'InventoryRetrieval' and item.get('StatusCode') == 'InProgress'), None)
-
-    completed_jobs = [ item for item in jobs if item.get('Action') == 'InventoryRetrieval' and item.get('StatusCode') == 'Succeeded' ]
-    
-    if completed_jobs:
-        accepted = False
-        # there could be more then one inventories
-        for job in completed_jobs:
-            try:
-                if app.vault.accept_inventory(job=job, force_accept=False):
-                    accepted = True
-            except InventoryIsOlder as e:
-                rprint(Text(str(f"Do not accept inventory job {job['JobId'][:5]} from WWWWW: it's old"), style="yellow"), file=sys.stderr)
-            except InventoryIsSame as e:
-                rprint(Text(str(e), style="yellow"), file=sys.stderr)
-
-        if accepted:
-            rprint(f"Accepted inventory from glacier. Do [code]thinice ls[/code] to list archives")
-            return
 
     if active_job:
         # get age of job as HH:MM, difference between now and lastjob['CreationDate'] e.g. 2024-10-25T12:59:35.451Z
         age = td2str(datetime.datetime.now(tz=datetime.timezone.utc) - iso2dt(active_job['CreationDate']))
         rprint(Text(f"Ongoing job {active_job['JobId'][:5]}... found (started {age} ago). Use --force to repeat", style="yellow"))
         return
+    else:
+        request_inventory(force=force)
+
