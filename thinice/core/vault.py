@@ -192,6 +192,9 @@ class GlacierVault:
         now = datetime.datetime.now(tz=datetime.timezone.utc)
         latest_job = self.inventory.get_latest_job(action='InventoryRetrieval', completed=False)
 
+        if self.inventory.is_ignored(latest_job['JobId']):
+            latest_job = None
+
         if latest_job:
             # isn't it too recent?
             if not force:
