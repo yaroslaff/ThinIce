@@ -62,6 +62,7 @@ class GlacierVault:
     def list_jobs(self) -> ListJobsOutputTypeDef:
         """ request current jobs and save it in local inventory """
         response = self.glacier_client.list_jobs(vaultName=self.vault_name)
+
         self.inventory.set_latest_jobs(response)
         self.inventory.save()
         
