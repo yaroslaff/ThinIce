@@ -19,7 +19,7 @@ def request_inventory(force: bool=False):
         print(f"Requested new inventory from glacier")
     except InventoryJobActive as e:
         rprint(Text(str(e), style="yellow"), file=sys.stderr)
-        rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory --force[/code] to force request new inventory', file=sys.stderr)        
+        rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory request --force[/code] to force request new inventory', file=sys.stderr)        
     
 
 def accept_inventory(force: bool=False) -> bool:
@@ -30,6 +30,10 @@ def accept_inventory(force: bool=False) -> bool:
         accepted = False
         # there could be more then one inventories
         for job in completed_jobs:
+            pprint(job)
+            if app.vault.inventory.is_ignored(hash=job['JobId']):                
+                continue
+
             try:
                 if app.vault.accept_inventory(job=job):
                     print(f"Accepted inventory from glacier")

@@ -24,8 +24,15 @@ thinice debug ignore JnNqXl\n
 """
 )
 def ignore(
-    hash: Annotated[str, typer.Argument(help='Hash prefix (or full hash)')],
+    hash: Annotated[str, typer.Argument(help='Hash prefix (or full hash)')] = None,
 ):
+    
+    if hash is None:
+        jobs = app.vault.list_jobs(noignore=True)
+        print("Jobs:", ' '.join(job['JobId'][:5] for job in jobs))
+
+        return
+
     # direct access here!
     app.vault.inventory.inventory['_debug']['ignore'].append(hash)
     app.vault.inventory.save()

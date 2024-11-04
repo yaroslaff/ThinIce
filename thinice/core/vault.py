@@ -59,7 +59,7 @@ class GlacierVault:
         # return [vault['VaultName'] for vault in response['VaultList']]
         return response['VaultList']
     
-    def list_jobs(self) -> ListJobsOutputTypeDef:
+    def list_jobs(self, noignore: bool=False) -> ListJobsOutputTypeDef:
         """ request current jobs and save it in local inventory """
         response = self.glacier_client.list_jobs(vaultName=self.vault_name)
 
@@ -71,6 +71,9 @@ class GlacierVault:
             pprint(response)
 
 
+        if noignore:
+            return response['JobList']
+        
         # filter it from is_ignored
         filtered_jobs = [job for job in response['JobList'] if not self.inventory.is_ignored(job['JobId'])]
 
