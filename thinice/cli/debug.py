@@ -1,4 +1,5 @@
 import typer
+import os
 from rich.pretty import pprint
 from . import app
 from typing_extensions import Annotated
@@ -40,4 +41,7 @@ def clear():
     # direct access here!
     app.vault.inventory.inventory['_debug']['ignore'] = list()
     app.vault.inventory.save()
+
+    if os.getenv('THINICE_IGN'):
+        print('THINICE_IGN = ', os.getenv('THINICE_IGN'))
 

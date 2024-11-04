@@ -1,6 +1,6 @@
 import datetime
 import json
-
+import os
 from typing import Optional
 
 from .utils import iso2dt
@@ -66,6 +66,11 @@ class Inventory():
 
     def is_ignored(self, hash: str):
         """ check if hash matches any prefixes in _debug ignore with any() """
+        env_ignore = os.getenv('THINICE_IGN', '').split(' ')
+        if any(hash.startswith(prefix) for prefix in env_ignore):
+            # ignored by env
+            return True
+
         return any(hash.startswith(prefix) for prefix in self.inventory['_debug']['ignore'])
 
 
