@@ -12,29 +12,73 @@ from rich.text import Text
 import sys
 
 
+def request_inventory(force: bool=False):
+    # if we are here, request new inventory
+    try:
+        app.vault.request_inventory(force=force)
+        print(f"Requested new inventory from glacier")
+    except InventoryJobActive as e:
+        rprint(Text(str(e), style="yellow"), file=sys.stderr)
+        rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory --force[/code] to force request new inventory', file=sys.stderr)        
+    
+
+def accept_inventory(force: bool=False) -> bool:
+    jobs = app.vault.list_jobs()
+    completed_jobs = [ item for item in jobs if item.get('Action') == 'InventoryRetrieval' and item.get('StatusCode') == 'Succeeded' ]
+    
+    if completed_jobs:
+        accepted = False
+        # there could be more then one inventories
+        for job in completed_jobs:
+            try:
+                if app.vault.accept_inventory(job=job):
+                    print(f"Accepted inventory from glacier")
+                    return True
+            except InventoryJobActive as e:
+                rprint(Text(str(e), style="yellow"), file=sys.stderr)
+                rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory --force[/code] to force request new inventory', file=sys.stderr)
+    
+    else:
+        rprint(Text(str("No completed inventory jobs found"), style="yellow"), file=sys.stderr)
+        rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory --force[/code] to force request new inventory', file=sys.stderr)
+        return False
+
+
 @typerapp.command("inventory", rich_help_panel=panel_main,
-             help='Request inventory from glacier vault',
+             help='request/accept inventory from glacier vault',
             epilog="""~~~shell\n
 thinice inventory\n
 ~~~
 """
 )
 def request_inventory(
-    force: Annotated[bool, typer.Option('--force', rich_help_panel=panel_main, help='Force request even if requested recently')] = False,
+    subcommand: Annotated[str, typer.Argument(help='subcommand: auto/request/accept (default: auto)')] = "auto",
+    force: Annotated[bool, typer.Option('--force', help='Force request even if requested recently')] = False,
     ):
 
-    if force:
-        app.vault.request_inventory(force=force)
-        rprint(f"Requested new inventory from glacier (because --force), see progress with [code]thinice jobs[/code]")
+
+    if subcommand not in ['auto', 'request', 'accept']:
+        rprint(f"Unknown subcommand {subcommand}, use one of [code]auto[/code] (default), [code]request[/code], [code]accept[/code]")
         return
 
+    if subcommand == 'request':
+        request_inventory(force=force)
+        return
+    
+    if subcommand == 'accept':
+        accept_inventory(force=force)
+        return
+
+
+    # here we should autodetect
+    
     # do we have ongoing job?
     jobs = app.vault.list_jobs()
     
     active_job = next((item for item in jobs if item.get('Action') == 'InventoryRetrieval' and item.get('StatusCode') == 'InProgress'), None)
 
     completed_jobs = [ item for item in jobs if item.get('Action') == 'InventoryRetrieval' and item.get('StatusCode') == 'Succeeded' ]
-
+    
     if completed_jobs:
         accepted = False
         # there could be more then one inventories
@@ -56,12 +100,3 @@ def request_inventory(
         age = td2str(datetime.datetime.now(tz=datetime.timezone.utc) - iso2dt(active_job['CreationDate']))
         rprint(Text(f"Ongoing job {active_job['JobId'][:5]}... found (started {age} ago). Use --force to repeat", style="yellow"))
         return
-
-    # if we are here, request new inventory
-    try:
-        app.vault.request_inventory(force=force)
-        print(f"Requested new inventory from glacier")
-    except InventoryJobActive as e:
-        rprint(Text(str(e), style="yellow"), file=sys.stderr)
-        rprint('Run [code]thinice jobs[/code] to see jobs, or [code]thinice inventory --force[/code] to force request new inventory', file=sys.stderr)        
-    

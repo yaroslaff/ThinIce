@@ -44,6 +44,13 @@ class Inventory():
         if not 'uploaded_files' in self.inventory:
             self.inventory["uploaded_files"] = dict()
 
+        if not '_debug' in self.inventory:
+            self.inventory['_debug'] = dict()
+
+        if not 'ignore' in self.inventory['_debug']:
+            self.inventory['_debug']['ignore'] = list()
+
+
         # del self.inventory['submitted_jobs']
 
     def save(self):
@@ -56,6 +63,10 @@ class Inventory():
 
     def dump(self):
         pprint(self.inventory)
+
+    def is_ignored(self, hash: str):
+        """ check if hash matches any prefixes in _debug ignore with any() """
+        return any(hash.startswith(prefix) for prefix in self.inventory['_debug']['ignore'])
 
 
     """ INVENTORIES """

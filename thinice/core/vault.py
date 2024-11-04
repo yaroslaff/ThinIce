@@ -69,7 +69,11 @@ class GlacierVault:
             print("vault.list_jobs():")
             pprint(response)
 
-        return response['JobList']
+
+        # filter it from is_ignored
+        filtered_jobs = [job for job in response['JobList'] if not self.inventory.is_ignored(job['JobId'])]
+
+        return filtered_jobs
 
     def accept_inventory(self, job: dict, force_accept: bool = False) -> bool:
         assert job['Action'] == 'InventoryRetrieval'
