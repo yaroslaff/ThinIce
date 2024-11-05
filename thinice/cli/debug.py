@@ -29,7 +29,7 @@ def ignore(
     
     if hash is None:
         jobs = app.vault.list_jobs(noignore=True)
-        print("Jobs:", ' '.join(job['JobId'][:5] for job in jobs))
+        print(f"Jobs for THINICE_IGN=\"{' '.join(job['JobId'][:5] for job in jobs)}\"")
 
         return
 

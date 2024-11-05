@@ -30,7 +30,6 @@ def accept_inventory(force: bool=False) -> bool:
         accepted = False
         # there could be more then one inventories
         for job in completed_jobs:
-            pprint(job)
             if app.vault.inventory.is_ignored(hash=job['JobId']):                
                 continue
 
