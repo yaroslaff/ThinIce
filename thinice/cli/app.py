@@ -5,6 +5,7 @@ from rich.text import Text
 from rich.panel import Panel
 from typing_extensions import Annotated
 from typing import Optional
+import os
 
 from ..core.credentials import AWSCredentials
 from ..core.vault  import GlacierVault
@@ -38,4 +39,4 @@ def callback(ctx: typer.Context,
     """
     global vault
     credentials = AWSCredentials(key_id=key_id, secret_key=secret_key, region=region)
-    vault = GlacierVault(credentials=credentials, vault_name=vault_name, verbose=verbose)
+    vault = GlacierVault(credentials=credentials, vault_name=vault_name, verbose=verbose, dry = bool(os.getenv('THINICE_DRY')))

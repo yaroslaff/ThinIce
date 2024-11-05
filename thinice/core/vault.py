@@ -35,7 +35,7 @@ class GlacierVault:
     vault_name: str
     verbose: bool
     
-    def __init__(self, credentials: AWSCredentials, vault_name: Optional[str] = None, verbose=False):
+    def __init__(self, credentials: AWSCredentials, vault_name: Optional[str] = None, verbose=False, dry=False):
         self.verbose = verbose
         self.credentials = credentials
         self.vault_name = vault_name
@@ -45,6 +45,7 @@ class GlacierVault:
             aws_secret_access_key=credentials.secret_key,
             region_name=credentials.region
         )
+        self.dry = dry
         self.glacier_client = self.session.client('glacier')
         self.s3_client = self.session.client('s3')
 
@@ -54,8 +55,6 @@ class GlacierVault:
     def list_vaults(self):
         response = self.glacier_client.list_vaults()
         
-    
-
         # return [vault['VaultName'] for vault in response['VaultList']]
         return response['VaultList']
     
@@ -202,6 +201,11 @@ class GlacierVault:
             # isn't it too recent?
             if not force:
                 raise InventoryJobActive(f"Active inventory job ({latest_job['JobId'][:5]}..) found. Completed: {latest_job['Completed']}, age: {td2str(now - iso2dt(latest_job['CreationDate']))}")
+
+        if self.dry:
+            if self.verbose:
+                print("DRY RUN: request_inventory()")
+            return
 
         response = self.glacier_client.initiate_job(
             vaultName=self.vault_name,
