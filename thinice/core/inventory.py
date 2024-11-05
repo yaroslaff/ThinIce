@@ -96,7 +96,7 @@ class Inventory():
             # No local inventory yet, accept
             self.inventory['latest_inventory'] = inv
             self.cleanup()
-            return
+            return True
 
         new_inv_date = iso2dt(inv['InventoryDate'])
 

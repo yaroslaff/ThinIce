@@ -65,11 +65,6 @@ class GlacierVault:
         self.inventory.set_latest_jobs(response)
         self.inventory.save()
         
-        if self.verbose:
-            print("vault.list_jobs():")
-            pprint(response)
-
-
         if noignore:
             return response['JobList']
         
