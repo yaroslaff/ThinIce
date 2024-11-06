@@ -35,6 +35,9 @@ class Inventory():
             self.inventory["latest_inventory"] = dict()
             self.inventory["latest_inventory"]['ArchiveList'] = list()
 
+        if  not 'latest_inventory_job_id' in self.inventory:
+            self.inventory["latest_inventory_job_id"] = None
+
         if not 'latest_jobs' in self.inventory:
             self.inventory["latest_jobs"] = dict()
 
@@ -86,9 +89,12 @@ class Inventory():
             return None
 
     def set_latest_inventory(self, inv: dict, jobid: None, force: bool = False) -> bool: 
-        if not self.inventory['latest_inventory']:
+        if not self.inventory['latest_inventory']['ArchiveList']:
             self.inventory['latest_inventory'] = inv
-            return
+            self.inventory['latest_inventory_job_id'] = jobid
+            if self.verbose:
+                print("Initialized local inventory from glacier")
+            return True
 
         try:
             cur_inv_date = iso2dt(self.inventory['latest_inventory']['InventoryDate'])
@@ -100,13 +106,21 @@ class Inventory():
 
         new_inv_date = iso2dt(inv['InventoryDate'])
 
+
         if cur_inv_date == new_inv_date and not force:
-            raise InventoryIsSame(f'Do not accept inventory job {jobid[:5]}. Local inventory date: {cur_inv_date.strftime("%Y-%m-%d %H:%M:%S")}; Job inventory date: {new_inv_date.strftime("%Y-%m-%d %H:%M:%S")}')
+            if jobid == self.inventory['latest_inventory_job_id']:
+                raise InventoryIsSame(f'Do not accept inventory job {jobid[:5]}. Local inventory date: {cur_inv_date.strftime("%Y-%m-%d %H:%M:%S")}; Job inventory date: {new_inv_date.strftime("%Y-%m-%d %H:%M:%S")}')
+            self.inventory['latest_inventory'] = inv
+            self.inventory['latest_inventory_job_id'] = jobid
+            if self.verbose:
+                print(f'Accepted same inventory from job {jobid[:5]}, date: {new_inv_date.strftime("%Y-%m-%d %H:%M:%S")}')
+            return True
             
         if cur_inv_date > new_inv_date:
             raise InventoryIsOlder(f'Do not accept inventory job {jobid[:5]}. Local inventory date: {cur_inv_date.strftime("%Y-%m-%d %H:%M:%S")}; Job inventory date: {new_inv_date.strftime("%Y-%m-%d %H:%M:%S")}')
 
         self.inventory['latest_inventory'] = inv
+        self.inventory['latest_inventory_job_id'] = jobid
         self.cleanup()
         return True
 
