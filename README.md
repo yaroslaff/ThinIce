@@ -35,16 +35,33 @@ Alternatively, you can supply this information via options: `--key-id`, `--secre
 First, you need to initialize the local inventory:
 ~~~shell
 # Request inventory
-thinice inventory
+thinice inventory request
+# or just "thinice inventory" which will automatically guess request/accept
 
 # Monitor when the job is complete (this may take a few hours)
 thinice job
 
 # Accept the inventory with the same command
-thinice inventory
+thinice inventory accept
+# or just "thinice inventory" again
 
 # Now you can list files
 thinice ls
+~~~
+
+### List/filter inventory
+~~~shell
+# list all files
+thinice ls
+
+# filter by name
+thinice ls *.zip
+
+# age: older then 3 days (or -3)
+thinice ls --age 3
+
+# size: files bigger then 20Mb (or -20M to list smaller files) 
+thinice ls --size 20M
 ~~~
 
 ### Upload
