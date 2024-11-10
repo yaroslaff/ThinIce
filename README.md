@@ -4,6 +4,10 @@ Thinice is a user-friendly client for AWS Glacier that features a local inventor
 
 With the local inventory, you can quickly list archives by filename (ArchiveDescription), size, and upload age.
 
+## Asciinema
+
+[![asciicast](https://asciinema.org/a/688295.svg)](https://asciinema.org/a/688295)
+
 ## Install
 [pipx](https://github.com/pypa/pipx) method is recommended (pipx is easy to install).
 ~~~shell
